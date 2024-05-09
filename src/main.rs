@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-#![warn(clippy::all, clippy::nursery, clippy::pedantic)]
+#![warn(clippy::pedantic)]
 use chrono::{NaiveDateTime, Utc};
 use reqwest::Url;
 use scraper::{selectable::Selectable, Html, Selector};
