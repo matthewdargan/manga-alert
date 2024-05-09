@@ -18,6 +18,49 @@
   outputs = inputs:
     inputs.parts.lib.mkFlake {inherit inputs;} {
       imports = [inputs.pre-commit-hooks.flakeModule];
+      flake.nixosModules.manga-alert = {
+        config,
+        lib,
+        pkgs,
+        ...
+      }: let
+        cfg = config.services.manga-alert;
+      in {
+        config = lib.mkIf cfg.enable {
+          systemd.services.manga-alert = {
+            after = ["multi-user.target"];
+            description = "Automatically alert about new manga chapters";
+            script = "${cfg.package}/bin/manga-alert '${cfg.manga}'";
+            serviceConfig.Type = "oneshot";
+          };
+          systemd.timers.manga-alert = {
+            timerConfig = {
+              OnCalendar = cfg.timer.onCalendar;
+              Unit = "manga-alert.service";
+            };
+            wantedBy = ["timers.target"];
+          };
+        };
+        options.services.manga-alert = {
+          enable = lib.mkEnableOption "Enable manga-alert";
+          manga = lib.mkOption {
+            example = "One Piece";
+            type = lib.types.string;
+          };
+          package = lib.mkOption {
+            default = inputs.self.packages.${pkgs.system}.manga-alert;
+            type = lib.types.package;
+          };
+          timer = {
+            enable = lib.mkEnableOption "Enable manga-alert timer";
+            onCalendar = lib.mkOption {
+              default = "*-*-* 08..23:00:00";
+              example = "*-*-* 08..23:00:00";
+              type = lib.types.string;
+            };
+          };
+        };
+      };
       perSystem = {
         config,
         inputs',
