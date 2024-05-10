@@ -3,40 +3,64 @@
 // license that can be found in the LICENSE file.
 
 #![warn(clippy::pedantic)]
-use chrono::{NaiveDateTime, Utc};
-use reqwest::Url;
+use chrono::{DateTime, Utc};
 use scraper::{selectable::Selectable, Html, Selector};
 use std::env;
 use std::error::Error;
 use std::process;
+
+const URL: &str = "https://tcbscans.com";
 
 fn main() -> Result<(), Box<dyn Error>> {
     let manga = env::args().nth(1).unwrap_or_else(|| {
         eprintln!("usage: manga-alert manga");
         process::exit(1);
     });
-    let url = Url::parse_with_params(
-        "https://tcbscans-manga.com",
-        &[("s", manga), ("post_type", "wp-manga".to_string())],
-    )?;
-    let body = reqwest::blocking::get(url)?.text()?;
+    let manga_chapter = format!("{}-chapter", manga.to_lowercase().replace(' ', "-"));
+    let body = reqwest::blocking::get(URL)?.text()?;
     let doc = Html::parse_document(&body);
-    let div_selector = Selector::parse("div.tab-meta")?;
+    let div_selector = Selector::parse("div.flex.flex-col.gap-3")?;
     let a_selector = Selector::parse("a")?;
-    let post_on_selector = Selector::parse("div.post-on > span")?;
-    let div = doc.select(&div_selector).next().unwrap();
-    let chapter = div
-        .select(&a_selector)
+    let time_ago_selector = Selector::parse("time-ago")?;
+    let chapter = doc
+        .select(&div_selector)
         .next()
         .unwrap()
-        .value()
-        .attr("href")
-        .unwrap();
-    let date_posted = div.select(&post_on_selector).next().unwrap().inner_html();
-    let date = NaiveDateTime::parse_from_str(&date_posted, "%Y-%m-%d %H:%M:%S")?;
-    let today = Utc::now().date_naive().and_hms_opt(0, 0, 0).unwrap();
-    if date > today {
-        println!("New manga chapter: {chapter}");
+        .child_elements()
+        .map(|e| {
+            let chapter = e
+                .select(&a_selector)
+                .next()
+                .unwrap()
+                .value()
+                .attr("href")
+                .unwrap();
+            let date_time = e
+                .select(&time_ago_selector)
+                .next()
+                .unwrap()
+                .value()
+                .attr("datetime")
+                .unwrap();
+            (chapter, date_time)
+        })
+        .filter(|(ch, _)| ch.contains(&manga_chapter))
+        .filter_map(|(ch, dt)| {
+            let date_time = DateTime::parse_from_rfc3339(dt).ok()?;
+            let now = Utc::now()
+                .date_naive()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .and_utc();
+            if date_time > now {
+                Some(format!("{URL}{ch}"))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<String>>();
+    if let Some(ch) = chapter.first() {
+        println!("New manga chapter: {ch}");
     }
     Ok(())
 }
