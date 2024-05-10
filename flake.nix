@@ -30,10 +30,11 @@
           systemd.services.manga-alert = {
             after = ["graphical-session.target"];
             description = "Automatically alert about new manga chapters";
-            script = ''
-              ${pkgs.notify-desktop}/bin/notify-desktop -u 'critical' "$(${cfg.package}/bin/manga-alert '${cfg.manga}')"
-            '';
-            serviceConfig.Type = "oneshot";
+            script = "${cfg.package}/bin/manga-alert '${cfg.manga}'";
+            serviceConfig = {
+              Type = "oneshot";
+              User = cfg.user;
+            };
           };
           systemd.timers.manga-alert = {
             timerConfig = {
@@ -60,6 +61,9 @@
               example = "*-*-* 08..23:00:00";
               type = lib.types.string;
             };
+          };
+          user = lib.mkOption {
+            type = lib.types.string;
           };
         };
       };

@@ -4,6 +4,7 @@
 
 #![warn(clippy::pedantic)]
 use chrono::{DateTime, Utc};
+use notify_rust::{Notification, Urgency};
 use scraper::{selectable::Selectable, Html, Selector};
 use std::env;
 use std::error::Error;
@@ -60,7 +61,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         })
         .collect::<Vec<String>>();
     if let Some(ch) = chapter.first() {
-        println!("New manga chapter: {ch}");
+        Notification::new()
+            .summary("manga-alert")
+            .body(&format!("New manga chapter: {ch}"))
+            .urgency(Urgency::Critical)
+            .show()?;
     }
     Ok(())
 }
