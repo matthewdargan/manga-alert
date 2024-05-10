@@ -13,18 +13,20 @@ use std::process;
 const URL: &str = "https://tcbscans.com";
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let manga = env::args().nth(1).unwrap_or_else(|| {
-        eprintln!("usage: manga-alert manga");
+    let manga: Vec<String> = env::args()
+        .skip(1)
+        .map(|m| m.to_lowercase().replace(' ', "-"))
+        .collect();
+    if manga.is_empty() {
+        eprintln!("usage: manga-alert manga...");
         process::exit(1);
-    });
-    let manga_chapter = format!("{}-chapter", manga.to_lowercase().replace(' ', "-"));
+    }
     let body = reqwest::blocking::get(URL)?.text()?;
     let doc = Html::parse_document(&body);
     let div_selector = Selector::parse("div.flex.flex-col.gap-3")?;
     let a_selector = Selector::parse("a")?;
     let time_ago_selector = Selector::parse("time-ago")?;
-    let chapter = doc
-        .select(&div_selector)
+    doc.select(&div_selector)
         .next()
         .unwrap()
         .child_elements()
@@ -45,7 +47,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .unwrap();
             (chapter, date_time)
         })
-        .filter(|(ch, _)| ch.contains(&manga_chapter))
+        .filter(|(ch, _)| manga.iter().any(|m| ch.contains(m)))
         .filter_map(|(ch, dt)| {
             let date_time = DateTime::parse_from_rfc3339(dt).ok()?;
             let now = Utc::now()
@@ -59,13 +61,13 @@ fn main() -> Result<(), Box<dyn Error>> {
                 None
             }
         })
-        .collect::<Vec<String>>();
-    if let Some(ch) = chapter.first() {
-        Notification::new()
-            .summary("manga-alert")
-            .body(&format!("New manga chapter: {ch}"))
-            .urgency(Urgency::Critical)
-            .show()?;
-    }
+        .for_each(|ch| {
+            Notification::new()
+                .summary("manga-alert")
+                .body(&format!("New manga chapter: {ch}"))
+                .urgency(Urgency::Critical)
+                .show()
+                .unwrap();
+        });
     Ok(())
 }

@@ -5,12 +5,12 @@ Manga-alert notifies about new manga chapters on
 
 Usage:
 
-    manga-alert manga
+    manga-alert manga...
 
 ## Example
 
-Check for a new chapter of the greatest manga of all time:
+Check for a new manga chapters:
 
 ```sh
-$ manga-alert 'one piece'
+$ manga-alert 'jujutsu kaisen' 'one piece'
 ```

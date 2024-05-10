@@ -30,7 +30,7 @@
           systemd.services.manga-alert = {
             after = ["graphical-session.target"];
             description = "Automatically alert about new manga chapters";
-            script = "${cfg.package}/bin/manga-alert '${cfg.manga}'";
+            script = "${cfg.package}/bin/manga-alert ${lib.strings.escapeShellArgs cfg.manga}";
             serviceConfig = {
               Type = "oneshot";
               User = cfg.user;
@@ -47,8 +47,8 @@
         options.services.manga-alert = {
           enable = lib.mkEnableOption "Enable manga-alert";
           manga = lib.mkOption {
-            example = "One Piece";
-            type = lib.types.string;
+            example = ["One Piece"];
+            type = lib.types.listOf lib.types.string;
           };
           package = lib.mkOption {
             default = inputs.self.packages.${pkgs.system}.manga-alert;
