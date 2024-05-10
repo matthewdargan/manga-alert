@@ -28,9 +28,11 @@
       in {
         config = lib.mkIf cfg.enable {
           systemd.services.manga-alert = {
-            after = ["multi-user.target"];
+            after = ["graphical-session.target"];
             description = "Automatically alert about new manga chapters";
-            script = "${cfg.package}/bin/manga-alert '${cfg.manga}'";
+            script = ''
+              ${pkgs.notify-desktop}/bin/notify-desktop -u 'critical' "$(${cfg.package}/bin/manga-alert '${cfg.manga}')"
+            '';
             serviceConfig.Type = "oneshot";
           };
           systemd.timers.manga-alert = {
