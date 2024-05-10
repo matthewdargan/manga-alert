@@ -65,9 +65,15 @@ fn main() -> Result<(), Box<dyn Error>> {
             Notification::new()
                 .summary("manga-alert")
                 .body(&format!("New manga chapter: {ch}"))
+                .icon("firefox")
                 .urgency(Urgency::Critical)
+                .action("clicked", "Open")
                 .show()
-                .unwrap();
+                .unwrap()
+                .wait_for_action(|a| match a {
+                    "clicked" => open::that(ch).unwrap(),
+                    _ => (),
+                });
         });
     Ok(())
 }
