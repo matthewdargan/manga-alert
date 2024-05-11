@@ -1,7 +1,7 @@
 # Manga-alert
 
 Manga-alert notifies about new manga chapters on
-[TCB Scans](https://tcbscans-manga.com).
+[TCB Scans](https://tcbscans.com).
 
 Usage:
 
