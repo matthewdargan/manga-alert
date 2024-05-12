@@ -70,9 +70,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .action("clicked", "Open")
                 .show()
                 .unwrap()
-                .wait_for_action(|a| match a {
-                    "clicked" => open::that(ch).unwrap(),
-                    _ => (),
+                .wait_for_action(|a| {
+                    if a == "clicked" {
+                        open::that(ch).unwrap();
+                    }
                 });
         });
     Ok(())
