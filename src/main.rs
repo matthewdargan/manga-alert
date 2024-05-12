@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let time_ago_selector = Selector::parse("time-ago")?;
     doc.select(&div_selector)
         .next()
-        .unwrap()
+        .expect("div not in HTML")
         .child_elements()
         .map(|e| {
             let chapter = e
