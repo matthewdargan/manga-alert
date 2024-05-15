@@ -81,7 +81,7 @@
         };
         packages.manga-alert = craneLib.buildPackage {
           nativeBuildInputs = lib.optionals pkgs.stdenv.isDarwin [pkgs.libiconv];
-          src = craneLib.cleanCargoSource (craneLib.path ./.);
+          src = ./.;
         };
         pre-commit = {
           settings = {
