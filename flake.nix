@@ -33,7 +33,6 @@
             Service = {
               ExecStart = "${cfg.package}/bin/manga-alert ${lib.strings.escapeShellArgs cfg.manga}";
               Type = "oneshot";
-              User = cfg.user;
             };
           };
           systemd.user.timers.manga-alert = {
@@ -61,9 +60,6 @@
               example = "*-*-* 08..23:00:00";
               type = lib.types.string;
             };
-          };
-          user = lib.mkOption {
-            type = lib.types.string;
           };
         };
       };
