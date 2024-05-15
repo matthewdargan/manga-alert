@@ -18,33 +18,33 @@
   outputs = inputs:
     inputs.parts.lib.mkFlake {inherit inputs;} {
       imports = [inputs.pre-commit-hooks.flakeModule];
-      flake.nixosModules.manga-alert = {
+      flake.homeModules.manga-alert = {
         config,
         lib,
         pkgs,
         ...
       }: let
-        cfg = config.services.manga-alert;
+        cfg = config.manga-alert;
       in {
         config = lib.mkIf cfg.enable {
-          systemd.services.manga-alert = {
-            after = ["graphical-session.target"];
-            description = "Automatically alert about new manga chapters";
-            script = "${cfg.package}/bin/manga-alert ${lib.strings.escapeShellArgs cfg.manga}";
-            serviceConfig = {
+          systemd.user.services.manga-alert = {
+            Unit.Description = "Automatically alert about new manga chapters";
+            Install.WantedBy = ["graphical-session.target"];
+            Service = {
+              ExecStart = "${cfg.package}/bin/manga-alert ${lib.strings.escapeShellArgs cfg.manga}";
               Type = "oneshot";
               User = cfg.user;
             };
           };
-          systemd.timers.manga-alert = {
-            timerConfig = {
+          systemd.user.timers.manga-alert = {
+            Unit.Description = "manga-alert.service";
+            Timer = {
               OnCalendar = cfg.timer.onCalendar;
-              Unit = "manga-alert.service";
+              WantedBy = ["timers.target"];
             };
-            wantedBy = ["timers.target"];
           };
         };
-        options.services.manga-alert = {
+        options.manga-alert = {
           enable = lib.mkEnableOption "Enable manga-alert";
           manga = lib.mkOption {
             example = ["One Piece"];
