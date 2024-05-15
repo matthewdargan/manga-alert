@@ -1,6 +1,6 @@
 [package]
 name = "manga-alert"
-version = "0.2.1"
+version = "0.2.3"
 authors = ["Matthew Dargan <matthewdargan57@gmail.com>"]
 edition = "2021"
 description = "Notify about new manga chapters on TCB Scans"
